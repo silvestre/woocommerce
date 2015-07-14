@@ -74,6 +74,10 @@ class WC_Eval_Math {
 	}
 
 	// Convert infix to postfix notation
+
+	/**
+	 * @param string $expr
+	 */
 	private static function nfx( $expr ) {
 
 		$index = 0;

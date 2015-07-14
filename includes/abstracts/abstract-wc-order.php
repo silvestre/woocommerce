@@ -109,7 +109,7 @@ abstract class WC_Abstract_Order {
 	/**
 	 * Init/load the order object. Called from the constructor.
 	 *
-	 * @param  int|object|WC_Order $order Order to init
+	 * @param  integer $order Order to init
 	 */
 	protected function init( $order ) {
 		if ( is_numeric( $order ) ) {

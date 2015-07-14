@@ -26,7 +26,6 @@ class WC_Order_Item_Meta {
 	/**
 	 * Constructor
 	 *
-	 * @param array $item_meta defaults to array()
 	 * @param \WC_Product $product defaults to null
 	 * @return \WC_Order_Item_Meta instance
 	 */

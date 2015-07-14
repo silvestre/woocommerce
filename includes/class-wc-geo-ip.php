@@ -1104,6 +1104,10 @@ class WC_Geo_IP {
 		'--'
 	);
 
+	/**
+	 * @param string $filename
+	 * @param integer $flags
+	 */
 	public function geoip_open( $filename, $flags ) {
 		$this->flags = $flags;
 		if ( $this->flags & self::GEOIP_SHARED_MEMORY ) {
@@ -1386,6 +1390,9 @@ class WC_Geo_IP {
 		return $record;
 	}
 
+	/**
+	 * @param integer $ipnum
+	 */
 	private function _get_record( $ipnum ) {
 		$seek_country = $this->_geoip_seek_country( $ipnum );
 		if ( $seek_country == $this->databaseSegments ) {
@@ -1395,6 +1402,9 @@ class WC_Geo_IP {
 		return $this->_common_get_record( $seek_country );
 	}
 
+	/**
+	 * @param string $ipnum
+	 */
 	function _geoip_seek_country_v6( $ipnum ) {
 		// arrays from unpack start with offset 1
 		// yet another php mystery. array_merge work around
@@ -1516,6 +1526,11 @@ class WC_Geo_IP {
 		return $this->_geoip_seek_country( $ipnum ) - self::GEOIP_COUNTRY_BEGIN;
 	}
 
+	/**
+	 * @param string $addr
+	 *
+	 * @return string
+	 */
 	public function geoip_country_code_by_addr_v6( $addr ) {
 		$country_id = $this->geoip_country_id_by_addr_v6( $addr );
 		if ( $country_id !== false ) {
@@ -1525,6 +1540,11 @@ class WC_Geo_IP {
 		return false;
 	}
 
+	/**
+	 * @param string $addr
+	 *
+	 * @return string
+	 */
 	public function geoip_country_code_by_addr( $addr ) {
 		if ( $this->databaseType == self::GEOIP_CITY_EDITION_REV1 ) {
 			$record = $this->geoip_record_by_addr( $addr);
@@ -1541,6 +1561,11 @@ class WC_Geo_IP {
 		return false;
 	}
 
+	/**
+	 * @param string $string
+	 * @param integer $start
+	 * @param integer $length
+	 */
 	private function _safe_substr( $string, $start, $length ) {
 		// workaround php's broken substr, strpos, etc handling with
 		// mbstring.func_overload and mbstring.internal_encoding

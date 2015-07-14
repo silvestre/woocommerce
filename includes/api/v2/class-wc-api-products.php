@@ -1781,7 +1781,7 @@ class WC_API_Products extends WC_API_Resource {
 	 *
 	 * @since 2.2
 	 * @param string $image_url
-	 * @return int|WP_Error attachment id
+	 * @return integer attachment id
 	 */
 	public function upload_product_image( $image_url ) {
 		$file_name 		= basename( current( explode( '?', $image_url ) ) );
