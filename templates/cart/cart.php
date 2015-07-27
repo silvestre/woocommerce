@@ -61,7 +61,7 @@ do_action( 'woocommerce_before_cart' ); ?>
 							if ( ! $_product->is_visible() ) {
 								echo $thumbnail;
 							} else {
-								printf( '<a href="%s">%s</a>', esc_url( $_product->get_permalink( $cart_item ) ), $thumbnail );
+								printf( '<a href="%s">%s</a>', esc_url( str_replace('/produkt', '', $_product->get_permalink( $cart_item ) ) ), $thumbnail );
 							}
 						?>
 					</td>
@@ -71,7 +71,7 @@ do_action( 'woocommerce_before_cart' ); ?>
 							if ( ! $_product->is_visible() ) {
 								echo apply_filters( 'woocommerce_cart_item_name', $_product->get_title(), $cart_item, $cart_item_key ) . '&nbsp;';
 							} else {
-								echo apply_filters( 'woocommerce_cart_item_name', sprintf( '<a href="%s">%s </a>', esc_url( $_product->get_permalink( $cart_item ) ), $_product->get_title() ), $cart_item, $cart_item_key );
+								echo apply_filters( 'woocommerce_cart_item_name', sprintf( '<a href="%s">%s </a>', esc_url( str_replace('/produkt', '', $_product->get_permalink( $cart_item ) ) ), $_product->get_title() ), $cart_item, $cart_item_key );
 							}
 
 							// Meta data
