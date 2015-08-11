@@ -88,7 +88,7 @@ class WC_Product_Variable extends WC_Product {
 	/**
 	 * Performed after a stock level change at product level
 	 */
-	protected function check_stock_status() {
+	public function check_stock_status() {
 		$set_child_stock_status = '';
 
 		if ( ! $this->backorders_allowed() && $this->get_stock_quantity() <= get_option( 'woocommerce_notify_no_stock_amount' ) ) {
@@ -154,14 +154,16 @@ class WC_Product_Variable extends WC_Product {
 						'key'     => '_price',
 						'value'   => '',
 						'compare' => '!=',
-					),
-					// Must be in stock
-					array(
+					)
+				);
+				// Must be in stock?
+				if ( 'yes' === get_option( 'woocommerce_hide_out_of_stock_items' ) ) {
+					$args['meta_query'][] = array(
 						'key'     => '_stock_status',
 						'value'   => 'instock',
 						'compare' => '=',
-					)
-				);
+					);
+				}
 			}
 			$this->children[ $key ] = get_posts( $args );
 			set_transient( $transient_name, $this->children, DAY_IN_SECONDS * 30 );
@@ -201,7 +203,7 @@ class WC_Product_Variable extends WC_Product {
 	public function is_on_sale() {
 		$is_on_sale = false;
 		$prices     = $this->get_variation_prices();
-		if ( $prices['regular_price'] !== $prices['price'] ) {
+		if ( $prices['regular_price'] !== $prices['sale_price'] && $prices['sale_price'] === $prices['price'] ) {
 			$is_on_sale = true;
 		}
 		return apply_filters( 'woocommerce_product_is_on_sale', $is_on_sale, $this );
@@ -249,7 +251,7 @@ class WC_Product_Variable extends WC_Product {
 	 * @return array()
 	 */
 	public function get_variation_prices( $display = false ) {
-		$cache_key = 'var_prices_' . md5( json_encode( apply_filters( 'woocommerce_get_variation_prices_hash', array(
+		$cache_key = 'wc_var_prices' . md5( json_encode( apply_filters( 'woocommerce_get_variation_prices_hash', array(
 			$this->id,
 			$display ? WC_Tax::get_rates() : '',
 			WC_Cache_Helper::get_transient_version( 'product' )
@@ -262,25 +264,27 @@ class WC_Product_Variable extends WC_Product {
 			$tax_display_mode  = get_option( 'woocommerce_tax_display_shop' );
 
 			foreach ( $this->get_children( true ) as $variation_id ) {
-				$price         = get_post_meta( $variation_id, '_price', true );
-				$regular_price = get_post_meta( $variation_id, '_regular_price', true );
-				$sale_price    = get_post_meta( $variation_id, '_sale_price', true );
+				if ( $variation = $this->get_child( $variation_id ) ) {
+					$price         = $variation->get_price();
+					$regular_price = $variation->get_regular_price();
+					$sale_price    = $variation->get_sale_price();
 
-				// If sale price does not equal price, the product is not yet on sale
-				if ( $price != $sale_price ) {
-					$sale_price = $regular_price;
+					// If sale price does not equal price, the product is not yet on sale
+					if ( ! $variation->is_on_sale() ) {
+						$sale_price = $regular_price;
+					}
+
+					// If we are getting prices for display, we need to account for taxes
+					if ( $display ) {
+						$price         = $tax_display_mode == 'incl' ? $variation->get_price_including_tax( 1, $price ) : $variation->get_price_excluding_tax( 1, $price );
+						$regular_price = $tax_display_mode == 'incl' ? $variation->get_price_including_tax( 1, $regular_price ) : $variation->get_price_excluding_tax( 1, $regular_price );
+						$sale_price    = $tax_display_mode == 'incl' ? $variation->get_price_including_tax( 1, $sale_price ) : $variation->get_price_excluding_tax( 1, $sale_price );
+					}
+
+					$prices[ $variation_id ]         = $price;
+					$regular_prices[ $variation_id ] = $regular_price;
+					$sale_prices[ $variation_id ]    = $sale_price;
 				}
-
-				// If we are getting prices for display, we need to account for taxes
-				if ( $display && ( $variation = $this->get_child( $variation_id ) ) ) {
-					$price         = $tax_display_mode == 'incl' ? $variation->get_price_including_tax( 1, $price ) : $variation->get_price_excluding_tax( 1, $price );
-					$regular_price = $tax_display_mode == 'incl' ? $variation->get_price_including_tax( 1, $regular_price ) : $variation->get_price_excluding_tax( 1, $regular_price );
-					$sale_price    = $tax_display_mode == 'incl' ? $variation->get_price_including_tax( 1, $sale_price ) : $variation->get_price_excluding_tax( 1, $sale_price );
-				}
-
-				$prices[ $variation_id ]         = $price;
-				$regular_prices[ $variation_id ] = $regular_price;
-				$sale_prices[ $variation_id ]    = $sale_price;
 			}
 
 			asort( $prices );
@@ -307,10 +311,12 @@ class WC_Product_Variable extends WC_Product {
 	 * @return string
 	 */
 	public function get_price_html( $price = '' ) {
-		if ( $this->get_price() === '' ) {
+		$prices = $this->get_variation_prices( true );
+
+		// No variations, or no active variation prices
+		if ( $this->get_price() === '' || empty( $prices['price'] ) ) {
 			$price = apply_filters( 'woocommerce_variable_empty_price_html', '', $this );
 		} else {
-			$prices    = $this->get_variation_prices( true );
 			$min_price = current( $prices['price'] );
 			$max_price = end( $prices['price'] );
 			$price     = $min_price !== $max_price ? sprintf( _x( '%1$s&ndash;%2$s', 'Price range: from-to', 'woocommerce' ), wc_price( $min_price ), wc_price( $max_price ) ) : wc_price( $min_price );
@@ -373,7 +379,7 @@ class WC_Product_Variable extends WC_Product {
 			if ( in_array( '', $values ) ) {
 				$values = $attribute['is_taxonomy'] ? wp_get_post_terms( $this->id, $attribute['name'], array( 'fields' => 'slugs' ) ) : wc_get_text_attributes( $attribute['value'] );
 
-			// Order custom attributes (non taxonomy) as defined
+			// Get custom attributes (non taxonomy) as defined
 			} elseif ( ! $attribute['is_taxonomy'] ) {
 				$text_attributes          = wc_get_text_attributes( $attribute['value'] );
 				$assigned_text_attributes = $values;
@@ -412,6 +418,18 @@ class WC_Product_Variable extends WC_Product {
 	public function get_variation_default_attributes() {
 		$default = isset( $this->default_attributes ) ? $this->default_attributes : '';
 		return apply_filters( 'woocommerce_product_default_attributes', (array) maybe_unserialize( $default ), $this );
+	}
+
+	/**
+	 * If set, get the default attributes for a variable product.
+	 *
+	 * @param string $attribute_name
+	 * @return string
+	 */
+	public function get_variation_default_attribute( $attribute_name ) {
+		$defaults       = $this->get_variation_default_attributes();
+		$attribute_name = sanitize_title( $attribute_name );
+		return isset( $defaults[ $attribute_name ] ) ? $defaults[ $attribute_name ] : '';
 	}
 
 	/**
@@ -497,7 +515,7 @@ class WC_Product_Variable extends WC_Product {
 
 		if ( has_post_thumbnail( $variation->get_variation_id() ) ) {
 			$attachment_id = get_post_thumbnail_id( $variation->get_variation_id() );
-			$attachment    = wp_get_attachment_image_src( $attachment_id, 'full'  );
+			$attachment    = wp_get_attachment_image_src( $attachment_id, 'shop_single'  );
 			$image         = $attachment ? current( $attachment ) : '';
 			$image_link    = $attachment ? current( $attachment ) : '';
 			$image_title   = get_the_title( $attachment_id );
@@ -589,6 +607,53 @@ class WC_Product_Variable extends WC_Product {
 		}
 
 		wc_update_product_stock_status( $product_id, $stock_status );
+	}
+
+	/**
+	 * Sync the variable product's attributes with the variations
+	 */
+	public static function sync_attributes( $product_id, $children = false ) {
+		if ( ! $children ) {
+			$children = get_posts( array(
+				'post_parent' 	=> $product_id,
+				'posts_per_page'=> -1,
+				'post_type' 	=> 'product_variation',
+				'fields' 		=> 'ids',
+				'post_status'	=> 'any'
+			) );
+		}
+
+		/**
+		 * Pre 2.4 handling where 'slugs' were saved instead of the full text attribute.
+		 * Attempt to get full version of the text attribute from the parent and UPDATE meta.
+		 */
+		if ( version_compare( get_post_meta( $product_id, '_product_version', true ), '2.4.0', '<' ) ) {
+			$parent_attributes = array_filter( (array) get_post_meta( $product_id, '_product_attributes', true ) );
+
+			foreach ( $children as $child_id ) {
+				$all_meta = get_post_meta( $child_id );
+
+				foreach ( $all_meta as $name => $value ) {
+					if ( 0 !== strpos( $name, 'attribute_' ) ) {
+						continue;
+					}
+					if ( sanitize_title( $value[0] ) === $value[0] ) {
+						foreach ( $parent_attributes as $attribute ) {
+							if ( $name !== 'attribute_' . sanitize_title( $attribute['name'] ) ) {
+								continue;
+							}
+							$text_attributes = wc_get_text_attributes( $attribute['value'] );
+							foreach ( $text_attributes as $text_attribute ) {
+								if ( sanitize_title( $text_attribute ) === $value[0] ) {
+									update_post_meta( $child_id, $name, $text_attribute );
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -690,6 +755,9 @@ class WC_Product_Variable extends WC_Product {
 			// The VARIABLE PRODUCT price should equal the min price of any type
 			update_post_meta( $product_id, '_price', $min_price );
 			delete_transient( 'wc_products_onsale' );
+
+			// Sync attributes
+			self::sync_attributes( $product_id, $children );
 
 			do_action( 'woocommerce_variable_product_sync', $product_id, $children );
 		}

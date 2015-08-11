@@ -1126,18 +1126,30 @@ abstract class WC_Abstract_Order {
 			$type = array( $type );
 		}
 
-		$type = array_map( 'esc_attr', $type );
+		$items          = array();
+		$get_items_sql  = $wpdb->prepare( "SELECT order_item_id, order_item_name, order_item_type FROM {$wpdb->prefix}woocommerce_order_items WHERE order_id = %d ", $this->id );
+		$get_items_sql .= "AND order_item_type IN ( '" . implode( "','", array_map( 'esc_sql', $type ) ) . "' ) ORDER BY order_item_id;";
+		$line_items     = $wpdb->get_results( $get_items_sql );
 
-		$line_items = $wpdb->get_results( $wpdb->prepare( "
-			SELECT      order_item_id, order_item_name, order_item_type
-			FROM        {$wpdb->prefix}woocommerce_order_items
-			WHERE       order_id = %d
-			AND         order_item_type IN ( '" . implode( "','", $type ) . "' )
-			ORDER BY    order_item_id
-		", $this->id ) );
+		// Loop items
+		foreach ( $line_items as $item ) {
+			$items[ $item->order_item_id ]['name']            = $item->order_item_name;
+			$items[ $item->order_item_id ]['type']            = $item->order_item_type;
+			$items[ $item->order_item_id ]['item_meta']       = $this->get_item_meta( $item->order_item_id );
+			$items[ $item->order_item_id ]['item_meta_array'] = $this->get_item_meta_array( $item->order_item_id );
+			$items[ $item->order_item_id ]                    = $this->expand_item_meta( $items[ $item->order_item_id ] );
+		}
 
-		$items = array();
+		return apply_filters( 'woocommerce_order_get_items', $items, $this );
+	}
 
+	/**
+	 * Expand item meta into the $item array.
+	 * @since 2.4.0
+	 * @param array $item before expansion
+	 * @return array
+	 */
+	public function expand_item_meta( $item ) {
 		// Reserved meta keys
 		$reserved_item_meta_keys = array(
 			'name',
@@ -1154,62 +1166,44 @@ abstract class WC_Abstract_Order {
 			'line_subtotal_tax'
 		);
 
-		// Loop items
-		foreach ( $line_items as $item ) {
-			$items[ $item->order_item_id ]['name']            = $item->order_item_name;
-			$items[ $item->order_item_id ]['type']            = $item->order_item_type;
-			$items[ $item->order_item_id ]['item_meta']       = $this->get_item_meta( $item->order_item_id );
-			$items[ $item->order_item_id ]['item_meta_array'] = $this->get_item_meta_array( $item->order_item_id );
-
-			// Expand meta data into the array
-			if ( $items[ $item->order_item_id ]['item_meta'] ) {
-				foreach ( $items[ $item->order_item_id ]['item_meta'] as $name => $value ) {
-					if ( in_array( $name, $reserved_item_meta_keys ) ) {
-						continue;
-					}
-					if ( '_' === substr( $name, 0, 1 ) ) {
-						$items[ $item->order_item_id ][ substr( $name, 1 ) ] = $value[0];
-					} elseif ( ! in_array( $name, $reserved_item_meta_keys ) ) {
-						$items[ $item->order_item_id ][ $name ] = make_clickable( $value[0] );
-					}
+		// Expand item meta if set
+		if ( ! empty( $item['item_meta'] ) ) {
+			foreach ( $item['item_meta'] as $name => $value ) {
+				if ( in_array( $name, $reserved_item_meta_keys ) ) {
+					continue;
+				}
+				if ( '_' === substr( $name, 0, 1 ) ) {
+					$item[ substr( $name, 1 ) ] = $value[0];
+				} elseif ( ! in_array( $name, $reserved_item_meta_keys ) ) {
+					$item[ $name ] = make_clickable( $value[0] );
 				}
 			}
 		}
-
-		return apply_filters( 'woocommerce_order_get_items', $items, $this );
+		return $item;
 	}
 
 	/**
-	 * Gets order total - formatted for display.
+	 * Gets the count of order items of a certain type.
 	 *
-	 * @param string $type
-	 *
+	 * @param string $item_type
 	 * @return string
 	 */
-	public function get_item_count( $type = '' ) {
-
-		if ( empty( $type ) ) {
-			$type = array( 'line_item' );
+	public function get_item_count( $item_type = '' ) {
+		if ( empty( $item_type ) ) {
+			$item_type = array( 'line_item' );
+		}
+		if ( ! is_array( $item_type ) ) {
+			$item_type = array( $item_type );
 		}
 
-		if ( ! is_array( $type ) ) {
-			$type = array( $type );
-		}
-
-		$items = $this->get_items( $type );
-
+		$items = $this->get_items( $item_type );
 		$count = 0;
 
 		foreach ( $items as $item ) {
-
-			if ( ! empty( $item['qty'] ) ) {
-				$count += $item['qty'];
-			} else {
-				$count ++;
-			}
+			$count += empty( $item['qty'] ) ? 1 : $item['qty'];
 		}
 
-		return apply_filters( 'woocommerce_get_item_count', $count, $type, $this );
+		return apply_filters( 'woocommerce_get_item_count', $count, $item_type, $this );
 	}
 
 	/**
@@ -1489,7 +1483,7 @@ abstract class WC_Abstract_Order {
 			$price = ( $item['line_subtotal'] / max( 1, $item['qty'] ) );
 		}
 
-		$price = $round ? number_format( (float) $price, 2, '.', '' ) : $price;
+		$price = $round ? number_format( (float) $price, wc_get_price_decimals(), '.', '' ) : $price;
 
 		return apply_filters( 'woocommerce_order_amount_item_subtotal', $price, $this, $item, $inc_tax, $round );
 	}
@@ -1503,14 +1497,13 @@ abstract class WC_Abstract_Order {
 	 * @return float
 	 */
 	public function get_line_subtotal( $item, $inc_tax = false, $round = true ) {
-
 		if ( $inc_tax ) {
 			$price = $item['line_subtotal'] + $item['line_subtotal_tax'];
 		} else {
 			$price = $item['line_subtotal'];
 		}
 
-		$price = $round ? round( $price, 2 ) : $price;
+		$price = $round ? round( $price, wc_get_price_decimals() ) : $price;
 
 		return apply_filters( 'woocommerce_order_amount_line_subtotal', $price, $this, $item, $inc_tax, $round );
 	}
@@ -1533,7 +1526,7 @@ abstract class WC_Abstract_Order {
 			$price = $item['line_total'] / max( 1, $qty );
 		}
 
-		$price = $round ? round( $price, 2 ) : $price;
+		$price = $round ? round( $price, wc_get_price_decimals() ) : $price;
 
 		return apply_filters( 'woocommerce_order_amount_item_total', $price, $this, $item, $inc_tax, $round );
 	}
@@ -1552,7 +1545,7 @@ abstract class WC_Abstract_Order {
 		$line_total = $inc_tax ? $item['line_total'] + $item['line_tax'] : $item['line_total'];
 
 		// Check if we need to round
-		$line_total = $round ? round( $line_total, 2 ) : $line_total;
+		$line_total = $round ? round( $line_total, wc_get_price_decimals() ) : $line_total;
 
 		return apply_filters( 'woocommerce_order_amount_line_total', $line_total, $this, $item, $inc_tax, $round );
 	}
@@ -1859,7 +1852,7 @@ abstract class WC_Abstract_Order {
 				if ( 'excl' == $tax_display ) {
 
 					$total_rows[ 'fee_' . $id ] = array(
-						'label' => $fee['name'] . ':',
+						'label' => ( $fee['name'] ? $fee['name'] : __( 'Fee', 'woocommerce' ) ) . ':',
 						'value'	=> wc_price( $fee['line_total'], array('currency' => $this->get_order_currency()) )
 					);
 
@@ -2466,17 +2459,13 @@ abstract class WC_Abstract_Order {
 		}
 	}
 
-
 	/**
-	 * Reduce stock levels
+	 * Reduce stock levels for all line items in the order.
+	 * Runs if stock management is enabled, but can be disabled on per-order basis by extensions @since 2.4.0 via woocommerce_can_reduce_order_stock hook.
 	 */
 	public function reduce_order_stock() {
-
-		if ( 'yes' == get_option('woocommerce_manage_stock') && sizeof( $this->get_items() ) > 0 ) {
-
-			// Reduce stock levels and do any other actions with products in the cart
+		if ( 'yes' === get_option( 'woocommerce_manage_stock' ) && apply_filters( 'woocommerce_can_reduce_order_stock', true, $this ) && sizeof( $this->get_items() ) > 0 ) {
 			foreach ( $this->get_items() as $item ) {
-
 				if ( $item['product_id'] > 0 ) {
 					$_product = $this->get_product_from_item( $item );
 
@@ -2485,16 +2474,13 @@ abstract class WC_Abstract_Order {
 						$new_stock = $_product->reduce_stock( $qty );
 
 						if ( isset( $item['variation_id'] ) && $item['variation_id'] ) {
-							$this->add_order_note( sprintf( __( 'Item\'s #%s variation #%s stock reduced from %s to %s.', 'woocommerce' ), $item['product_id'], $item['variation_id'], $new_stock + $qty, $new_stock) );
+							$this->add_order_note( sprintf( __( 'Item #%s variation #%s stock reduced from %s to %s.', 'woocommerce' ), $item['product_id'], $item['variation_id'], $new_stock + $qty, $new_stock) );
 						} else {
 							$this->add_order_note( sprintf( __( 'Item #%s stock reduced from %s to %s.', 'woocommerce' ), $item['product_id'], $new_stock + $qty, $new_stock) );
 						}
-
 						$this->send_stock_notifications( $_product, $new_stock, $item['qty'] );
 					}
-
 				}
-
 			}
 
 			do_action( 'woocommerce_reduce_order_stock', $this );

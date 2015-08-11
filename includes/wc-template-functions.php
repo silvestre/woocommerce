@@ -128,7 +128,7 @@ function wc_products_rss_feed() {
 
 		$feed = get_post_type_archive_feed_link( 'product' );
 
-		echo '<link rel="alternate" type="application/rss+xml"  title="' . __( 'New products', 'woocommerce' ) . '" href="' . esc_url( $feed ) . '" />';
+		echo '<link rel="alternate" type="application/rss+xml"  title="' . esc_attr__( 'New products', 'woocommerce' ) . '" href="' . esc_url( $feed ) . '" />';
 
 	} elseif ( is_tax( 'product_cat' ) ) {
 
@@ -136,7 +136,7 @@ function wc_products_rss_feed() {
 
 		$feed = add_query_arg('product_cat', $term->slug, get_post_type_archive_feed_link( 'product' ));
 
-		echo '<link rel="alternate" type="application/rss+xml"  title="' . sprintf(__( 'New products added to %s', 'woocommerce' ), urlencode($term->name)) . '" href="' . esc_url( $feed ) . '" />';
+		echo '<link rel="alternate" type="application/rss+xml"  title="' . esc_attr( sprintf( __( 'New products added to %s', 'woocommerce' ), $term->name ) ) . '" href="' . esc_url( $feed ) . '" />';
 
 	} elseif ( is_tax( 'product_tag' ) ) {
 
@@ -1679,7 +1679,7 @@ if ( ! function_exists( 'woocommerce_form_field' ) ) {
 
 					$field .= '</select>';
 
-					$field .= '<noscript><input type="submit" name="woocommerce_checkout_update_totals" value="' . __( 'Update country', 'woocommerce' ) . '" /></noscript>';
+					$field .= '<noscript><input type="submit" name="woocommerce_checkout_update_totals" value="' . esc_attr__( 'Update country', 'woocommerce' ) . '" /></noscript>';
 
 				}
 
@@ -1863,5 +1863,95 @@ if ( ! function_exists( 'woocommerce_output_auth_footer' ) ) {
 	 */
 	function woocommerce_output_auth_footer() {
 		wc_get_template( 'auth/footer.php' );
+	}
+}
+
+if ( ! function_exists( 'woocommerce_single_variation' ) ) {
+
+	/**
+	 * Output placeholders for the single variation.
+	 */
+	function woocommerce_single_variation() {
+		echo '<div class="single_variation"></div>';
+	}
+}
+
+if ( ! function_exists( 'woocommerce_single_variation_add_to_cart_button' ) ) {
+
+	/**
+	 * Output the add to cart button for variations.
+	 */
+	function woocommerce_single_variation_add_to_cart_button() {
+		global $product;
+		?>
+		<div class="variations_button">
+			<?php woocommerce_quantity_input( array( 'input_value' => isset( $_POST['quantity'] ) ? wc_stock_amount( $_POST['quantity'] ) : 1 ) ); ?>
+			<button type="submit" class="single_add_to_cart_button button alt"><?php echo esc_html( $product->single_add_to_cart_text() ); ?></button>
+			<input type="hidden" name="add-to-cart" value="<?php echo absint( $product->id ); ?>" />
+			<input type="hidden" name="product_id" value="<?php echo absint( $product->id ); ?>" />
+			<input type="hidden" name="variation_id" class="variation_id" value="" />
+		</div>
+		<?php
+	}
+}
+
+if ( ! function_exists( 'wc_dropdown_variation_attribute_options' ) ) {
+
+	/**
+	 * Output a list of variation attributes for use in the cart forms.
+	 *
+	 * @param array $args
+	 * @since 2.4.0
+	 */
+	function wc_dropdown_variation_attribute_options( $args = array() ) {
+		$args = wp_parse_args( $args, array(
+			'options'          => false,
+			'attribute'        => false,
+			'product'          => false,
+			'selected' 	       => false,
+			'name'             => '',
+			'id'               => '',
+			'class'            => '',
+			'show_option_none' => __( 'Choose an option', 'woocommerce' )
+		) );
+
+		$options   = $args['options'];
+		$product   = $args['product'];
+		$attribute = $args['attribute'];
+		$name      = $args['name'] ? $args['name'] : 'attribute_' . sanitize_title( $attribute );
+		$id        = $args['id'] ? $args['id'] : sanitize_title( $attribute );
+		$class     = $args['class'];
+
+		if ( empty( $options ) && ! empty( $product ) && ! empty( $attribute ) ) {
+			$attributes = $product->get_variation_attributes();
+			$options    = $attributes[ $attribute ];
+		}
+
+		echo '<select id="' . esc_attr( $id ) . '" class="' . esc_attr( $class ) . '" name="' . esc_attr( $name ) . '" data-attribute_name="attribute_' . esc_attr( sanitize_title( $attribute ) ) . '">';
+
+		if ( $args['show_option_none'] ) {
+			echo '<option value="">' . esc_html( $args['show_option_none'] ) . '</option>';
+		}
+
+		if ( ! empty( $options ) ) {
+			if ( $product && taxonomy_exists( $attribute ) ) {
+				// Get terms if this is a taxonomy - ordered. We need the names too.
+				$terms = wc_get_product_terms( $product->id, $attribute, array( 'fields' => 'all' ) );
+
+				foreach ( $terms as $term ) {
+					if ( in_array( $term->slug, $options ) ) {
+						echo '<option value="' . esc_attr( $term->slug ) . '" ' . selected( sanitize_title( $args['selected'] ), $term->slug, false ) . '>' . apply_filters( 'woocommerce_variation_option_name', $term->name ) . '</option>';
+					}
+				}
+			} else {
+				foreach ( $options as $option ) {
+					// This handles < 2.4.0 bw compatibility where text attributes were not sanitized.
+					$selected = sanitize_title( $args['selected'] ) === $args['selected'] ? selected( $args['selected'], sanitize_title( $option ), false ) : selected( $args['selected'], $option, false );
+					echo '<option value="' . esc_attr( $option ) . '" ' . $selected . '>' . esc_html( apply_filters( 'woocommerce_variation_option_name', $option ) ) . '</option>';
+				}
+			}
+		}
+
+		echo '</select>';
 	}
 }

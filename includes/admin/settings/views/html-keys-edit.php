@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<tr valign="top">
 				<th scope="row" class="titledesc">
 					<label for="key_user"><?php _e( 'User', 'woocommerce' ); ?></label>
-					<img class="help_tip" data-tip="<?php _e( 'Owner of these keys.', 'woocommerce' ); ?>" src="<?php echo WC()->plugin_url(); ?>/assets/images/help.png" height="16" width="16" />
+					<img class="help_tip" data-tip="<?php esc_attr_e( 'Owner of these keys.', 'woocommerce' ); ?>" src="<?php echo WC()->plugin_url(); ?>/assets/images/help.png" height="16" width="16" />
 				</th>
 				<td class="forminp">
 					<?php
@@ -32,13 +32,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 						$user           = get_user_by( 'id', $user_id );
 						$user_string    = esc_html( $user->display_name ) . ' (#' . absint( $user->ID ) . ' &ndash; ' . esc_html( $user->user_email ) . ')';
 					?>
-					<input type="hidden" class="wc-customer-search" id="key_user" data-placeholder="<?php esc_html_e( 'Search for a customer&hellip;', 'woocommerce' ); ?>" data-selected="<?php echo esc_attr( $user_string ); ?>" value="<?php echo esc_attr( $user_id ); ?>" data-allow_clear="true" />
+					<input type="hidden" class="wc-customer-search" id="key_user" data-placeholder="<?php esc_attr_e( 'Search for a customer&hellip;', 'woocommerce' ); ?>" data-selected="<?php echo esc_attr( $user_string ); ?>" value="<?php echo esc_attr( $user_id ); ?>" data-allow_clear="true" />
 				</td>
 			</tr>
 			<tr valign="top">
 				<th scope="row" class="titledesc">
-					<label for="key_permissions"><?php _e( 'Permissons', 'woocommerce' ); ?></label>
-					<img class="help_tip" data-tip="<?php _e( 'Select the access type of these keys.', 'woocommerce' ); ?>" src="<?php echo WC()->plugin_url(); ?>/assets/images/help.png" height="16" width="16" />
+					<label for="key_permissions"><?php _e( 'Permissions', 'woocommerce' ); ?></label>
+					<img class="help_tip" data-tip="<?php esc_attr_e( 'Select the access type of these keys.', 'woocommerce' ); ?>" src="<?php echo WC()->plugin_url(); ?>/assets/images/help.png" height="16" width="16" />
 				</th>
 				<td class="forminp">
 					<select id="key_permissions" class="wc-enhanced-select">
@@ -101,7 +101,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	?>
 </div>
 
-<script type="text/template" id="api-keys-template">
+<script type="text/template" id="tmpl-api-keys-template">
 	<table class="form-table">
 		<tbody>
 			<tr valign="top">
@@ -109,7 +109,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 					<?php _e( 'Consumer Key', 'woocommerce' ); ?>
 				</th>
 				<td class="forminp">
-					<code id="key_consumer_key"><%- consumer_key %></code> <button type="button" class="button-secondary copy-key" data-tip="<?php _e( 'Copied!', 'woocommerce' ); ?>"><?php _e( 'Copy', 'woocommerce' ); ?></button>
+					<code id="key_consumer_key">{{ data.consumer_key }}</code> <button type="button" class="button-secondary copy-key" data-tip="<?php esc_attr_e( 'Copied!', 'woocommerce' ); ?>"><?php _e( 'Copy', 'woocommerce' ); ?></button>
 				</td>
 			</tr>
 			<tr valign="top">
@@ -117,7 +117,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 					<?php _e( 'Consumer Secret', 'woocommerce' ); ?>
 				</th>
 				<td class="forminp">
-					<code id="key_consumer_secret"><%- consumer_secret %></code> <button type="button" class="button-secondary copy-key" data-tip="<?php _e( 'Copied!', 'woocommerce' ); ?>"><?php _e( 'Copy', 'woocommerce' ); ?></button>
+					<code id="key_consumer_secret">{{ data.consumer_secret }}</code> <button type="button" class="button-secondary copy-key" data-tip="<?php esc_attr_e( 'Copied!', 'woocommerce' ); ?>"><?php _e( 'Copy', 'woocommerce' ); ?></button>
 				</td>
 			</tr>
 			<tr valign="top">

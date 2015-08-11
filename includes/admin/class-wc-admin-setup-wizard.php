@@ -202,8 +202,7 @@ class WC_Admin_Setup_Wizard {
 	 */
 	public function wc_setup_introduction() {
 		?>
-		<h1><?php _e( 'Welcome to the world of WooCommerce!
-', 'woocommerce' ); ?></h1>
+		<h1><?php _e( 'Welcome to the world of WooCommerce!', 'woocommerce' ); ?></h1>
 		<p><?php _e( 'Thank you for choosing WooCommerce to power your online store! This quick setup wizard will help you configure the basic settings. <strong>It’s completely optional and shouldn’t take longer than five minutes.</strong>', 'woocommerce' ); ?></p>
 		<p><?php _e( 'No time right now? If you don’t want to go through the wizard, you can skip and return to the WordPress dashboard. Come back anytime if you change your mind!', 'woocommerce' ); ?></p>
 		<p class="wc-setup-actions step">
@@ -297,7 +296,7 @@ class WC_Admin_Setup_Wizard {
 				<tr>
 					<th scope="row"><label for="store_location"><?php _e( 'Where is your store based?', 'woocommerce' ); ?></label></th>
 					<td>
-					<select id="store_location" name="store_location" style="width:100%;" required data-placeholder="<?php _e( 'Choose a country&hellip;', 'woocommerce' ); ?>" class="wc-enhanced-select">
+					<select id="store_location" name="store_location" style="width:100%;" required data-placeholder="<?php esc_attr_e( 'Choose a country&hellip;', 'woocommerce' ); ?>" class="wc-enhanced-select">
 							<?php WC()->countries->country_dropdown_options( $country, $state ); ?>
 						</select>
 					</td>
@@ -305,7 +304,7 @@ class WC_Admin_Setup_Wizard {
 				<tr>
 					<th scope="row"><label for="currency_code"><?php _e( 'Which currency will your store use?', 'woocommerce' ); ?></label></th>
 					<td>
-						<select id="currency_code" name="currency_code" required style="width:100%;" data-placeholder="<?php _e( 'Choose a currency&hellip;', 'woocommerce' ); ?>" class="wc-enhanced-select">
+						<select id="currency_code" name="currency_code" required style="width:100%;" data-placeholder="<?php esc_attr_e( 'Choose a currency&hellip;', 'woocommerce' ); ?>" class="wc-enhanced-select">
 							<option value=""><?php _e( 'Choose a currency&hellip;', 'woocommerce' ); ?></option>
 							<?php
 							foreach ( get_woocommerce_currencies() as $code => $name ) {
@@ -553,9 +552,11 @@ class WC_Admin_Setup_Wizard {
 			if ( $item_cost = sanitize_text_field( $_POST['shipping_cost_domestic_item'] ) ) {
 				$costs[] = $item_cost . ' * [qty]';
 			}
-			$shipping_method->settings['cost']    = implode( ' + ', array_filter( $costs ) );
-			$shipping_method->settings['enabled'] = 'yes';
-			$shipping_method->settings['type']    = 'order';
+			$shipping_method->settings['cost']         = implode( ' + ', array_filter( $costs ) );
+			$shipping_method->settings['enabled']      = 'yes';
+			$shipping_method->settings['type']         = 'order';
+			$shipping_method->settings['availability'] = 'specific';
+			$shipping_method->settings['countries']    = array( WC()->countries->get_base_country() );
 
 			update_option( $shipping_method->plugin_id . $shipping_method->id . '_settings', $shipping_method->settings );
 		}
@@ -571,9 +572,13 @@ class WC_Admin_Setup_Wizard {
 			if ( $item_cost = sanitize_text_field( $_POST['shipping_cost_international_item'] ) ) {
 				$costs[] = $item_cost . ' * [qty]';
 			}
-			$shipping_method->settings['cost']    = implode( ' + ', array_filter( $costs ) );
-			$shipping_method->settings['enabled'] = 'yes';
-			$shipping_method->settings['type']    = 'order';
+			$shipping_method->settings['cost']         = implode( ' + ', array_filter( $costs ) );
+			$shipping_method->settings['enabled']      = 'yes';
+			$shipping_method->settings['type']         = 'order';
+			if ( ! empty( $_POST['shipping_cost_domestic'] ) ) {
+				$shipping_method->settings['availability'] = 'excluding';
+				$shipping_method->settings['countries']    = array( WC()->countries->get_base_country() );
+			}
 
 			update_option( $shipping_method->plugin_id . $shipping_method->id . '_settings', $shipping_method->settings );
 		}

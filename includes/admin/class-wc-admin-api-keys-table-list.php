@@ -158,7 +158,7 @@ class WC_Admin_API_Keys_Table_List extends WP_List_Table {
 			return apply_filters( 'woocommerce_api_key_last_access_datetime', $date, $key['last_access'] );
 		}
 
-		return __( 'Unknown' );
+		return __( 'Unknown', 'woocommerce' );
 	}
 
 	/**
@@ -194,22 +194,18 @@ class WC_Admin_API_Keys_Table_List extends WP_List_Table {
 		}
 
 		$search = '';
+
 		if ( ! empty( $_REQUEST['s'] ) ) {
-			$search = "AND description LIKE '" . $wpdb->esc_like( $_REQUEST['s'] ) . "'";
+			$search = "AND description LIKE '%" . esc_sql( $wpdb->esc_like( wc_clean( $_REQUEST['s'] ) ) ) . "%' ";
 		}
 
 		// Get the API keys
-		$keys = $wpdb->get_results( $wpdb->prepare( "
-			SELECT key_id, user_id, description, permissions, truncated_key, last_access
-			FROM {$wpdb->prefix}woocommerce_api_keys
-			WHERE 1 = 1
-			$search
-			ORDER BY key_id DESC
-			LIMIT %d
-			OFFSET %d
-		 ", $per_page, $offset ), ARRAY_A );
+		$keys = $wpdb->get_results(
+			"SELECT key_id, user_id, description, permissions, truncated_key, last_access FROM {$wpdb->prefix}woocommerce_api_keys WHERE 1 = 1 {$search}" .
+			$wpdb->prepare( "ORDER BY key_id DESC LIMIT %d OFFSET %d;", $per_page, $offset ), ARRAY_A
+		);
 
-		$count = $wpdb->get_var( "SELECT COUNT(key_id) FROM {$wpdb->prefix}woocommerce_api_keys WHERE 1 = 1 $search" );
+		$count = $wpdb->get_var( "SELECT COUNT(key_id) FROM {$wpdb->prefix}woocommerce_api_keys WHERE 1 = 1 {$search};" );
 
 		$this->items = $keys;
 

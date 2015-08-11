@@ -11,13 +11,13 @@
  */
 class WC_Order_Item_Meta {
 
-	/** @var For handling backwards comp */
+	/** @var bool For handling backwards comp */
 	private $legacy = false;
 
 	/** @var Array Order item */
 	private $item   = null;
 
-	/** @var Post meta data */
+	/** @var Array Post meta data */
 	public $meta    = null;
 
 	/** @var Product object */
@@ -140,7 +140,9 @@ class WC_Order_Item_Meta {
 	 * @return array
 	 */
 	public function get_formatted_legacy( $hideprefix = '_' ) {
-		_deprecated_function( 'get_formatted_legacy', '2.4', 'Item Meta Data is being called with legacy arguments' );
+		if ( ! is_ajax() ) {
+			_deprecated_function( 'get_formatted_legacy', '2.4', 'Item Meta Data is being called with legacy arguments' );
+		}
 
 		$formatted_meta = array();
 

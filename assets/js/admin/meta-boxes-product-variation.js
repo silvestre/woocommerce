@@ -13,7 +13,9 @@ jQuery( function( $ ) {
 			$( '#variable_product_options' )
 				.on( 'change', 'input.variable_is_downloadable', this.variable_is_downloadable )
 				.on( 'change', 'input.variable_is_virtual', this.variable_is_virtual )
-				.on( 'change', 'input.variable_manage_stock', this.variable_manage_stock );
+				.on( 'change', 'input.variable_manage_stock', this.variable_manage_stock )
+				.on( 'click', 'button.notice-dismiss', this.notice_dismiss )
+				.on( 'click', 'h3 .sort', this.set_menu_order );
 
 			$( 'input.variable_is_downloadable, input.variable_is_virtual, input.variable_manage_stock' ).change();
 
@@ -53,6 +55,13 @@ jQuery( function( $ ) {
 			if ( $( this ).is( ':checked' ) ) {
 				$( this ).closest( '.woocommerce_variation' ).find( '.show_if_variation_manage_stock' ).show();
 			}
+		},
+
+		/**
+		 * Notice dismiss
+		 */
+		notice_dismiss: function() {
+			$( this ).closest( 'div.notice' ).remove();
 		},
 
 		/**
@@ -109,6 +118,21 @@ jQuery( function( $ ) {
 				});
 			});
 
+			// Allow sorting
+			jQuery( '.woocommerce_variations' ).sortable({
+				items               : '.woocommerce_variation',
+				cursor              : 'move',
+				axis                : 'y',
+				handle              : '.sort',
+				scrollSensitivity   : 40,
+				forcePlaceholderSize: true,
+				helper              : 'clone',
+				opacity             : 0.65,
+				stop                : function () {
+				    wc_meta_boxes_product_variations_actions.variation_row_indexes();
+				}
+			});
+
 			$( document.body ).trigger( 'wc-enhanced-select-init' );
 		},
 
@@ -122,6 +146,34 @@ jQuery( function( $ ) {
 			if ( 1 === qty ) {
 				wc_meta_boxes_product_variations_actions.variations_loaded();
 			}
+		},
+
+		/**
+		 * Lets the user manually input menu order to move items around pages
+		 */
+		set_menu_order: function( event ) {
+			event.preventDefault();
+			var $menu_order  = $( this ).closest( '.woocommerce_variation' ).find('.variation_menu_order');
+			var value        = window.prompt( woocommerce_admin_meta_boxes_variations.i18n_enter_menu_order, $menu_order.val() );
+
+			if ( value != null ) {
+				// Set value, save changes and reload view
+				$menu_order.val( parseInt( value, 10 ) ).change();
+				wc_meta_boxes_product_variations_ajax.save_variations();
+			}
+		},
+
+		/**
+		 * Set menu order
+		 */
+		variation_row_indexes: function() {
+			var wrapper      = $( '#variable_product_options .woocommerce_variations' ),
+				current_page = parseInt( wrapper.attr( 'data-page' ), 10 ),
+				offset       = parseInt( ( current_page - 1 ) * woocommerce_admin_meta_boxes_variations.variations_per_page, 10 );
+
+			$( '.woocommerce_variations .woocommerce_variation' ).each( function ( index, el ) {
+				$( '.variation_menu_order', el ).val( parseInt( $( el ).index( '.woocommerce_variations .woocommerce_variation' ), 10 ) + 1 + offset ).change();
+			});
 		}
 	};
 
@@ -382,16 +434,17 @@ jQuery( function( $ ) {
 			if ( 0 < need_update.length ) {
 				wc_meta_boxes_product_variations_ajax.block();
 
-				data            = wc_meta_boxes_product_variations_ajax.get_variations_fields( need_update );
-				data.action     = 'woocommerce_save_variations';
-				data.security   = woocommerce_admin_meta_boxes_variations.save_variations_nonce;
-				data.product_id = woocommerce_admin_meta_boxes_variations.post_id;
+				data                 = wc_meta_boxes_product_variations_ajax.get_variations_fields( need_update );
+				data.action          = 'woocommerce_save_variations';
+				data.security        = woocommerce_admin_meta_boxes_variations.save_variations_nonce;
+				data.product_id      = woocommerce_admin_meta_boxes_variations.post_id;
+				data['product-type'] = $( '#product-type' ).val();
 
 				$.ajax({
 					url: woocommerce_admin_meta_boxes_variations.ajax_url,
 					data: data,
 					type: 'POST',
-					success: function() {
+					success: function( response ) {
 						// Allow change page, delete and add new variations
 						need_update.removeClass( 'variation-needs-update' );
 						$( 'button.cancel-variation-changes, button.save-variation-changes' ).attr( 'disabled', 'disabled' );
@@ -399,7 +452,7 @@ jQuery( function( $ ) {
 						$( '#woocommerce-product-data' ).trigger( 'woocommerce_variations_saved' );
 
 						if ( typeof callback === 'function' ) {
-							callback();
+							callback( response );
 						}
 
 						wc_meta_boxes_product_variations_ajax.unblock();
@@ -416,8 +469,15 @@ jQuery( function( $ ) {
 		save_variations: function() {
 			$( '#variable_product_options' ).trigger( 'woocommerce_variations_save_variations_button' );
 
-			wc_meta_boxes_product_variations_ajax.save_changes( function() {
-				var current = $( '#variable_product_options .woocommerce_variations' ).attr( 'data-page' );
+			wc_meta_boxes_product_variations_ajax.save_changes( function( error ) {
+				var wrapper = $( '#variable_product_options .woocommerce_variations' ),
+					current = wrapper.attr( 'data-page' );
+
+				$( '#variable_product_options #woocommerce_errors' ).remove();
+
+				if ( error ) {
+					wrapper.before( error );
+				}
 
 				$( '.variations-defaults select' ).each( function() {
 					$( this ).attr( 'data-current', $( this ).val() );
@@ -871,6 +931,8 @@ jQuery( function( $ ) {
 		page_selector: function() {
 			var selected = parseInt( $( this ).val(), 10 ),
 				wrapper  = $( '#variable_product_options .woocommerce_variations' );
+
+			$( '.variations-pagenav .page-selector' ).val( selected );
 
 			wc_meta_boxes_product_variations_ajax.check_for_changes();
 			wc_meta_boxes_product_variations_pagenav.change_classes( selected, parseInt( wrapper.attr( 'data-total_pages' ), 10 ) );

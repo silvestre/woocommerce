@@ -42,7 +42,7 @@ class WC_Meta_Box_Product_Data {
 			'variable' => __( 'Variable product', 'woocommerce' )
 		), $product_type );
 
-		$type_box = '<label for="product-type"><select id="product-type" name="product-type"><optgroup label="' . __( 'Product Type', 'woocommerce' ) . '">';
+		$type_box = '<label for="product-type"><select id="product-type" name="product-type"><optgroup label="' . esc_attr__( 'Product Type', 'woocommerce' ) . '">';
 
 		foreach ( $product_type_selector as $value => $label ) {
 			$type_box .= '<option value="' . esc_attr( $value ) . '" ' . selected( $product_type, $value, false ) .'>' . esc_html( $label ) . '</option>';
@@ -173,7 +173,7 @@ class WC_Meta_Box_Product_Data {
 								<input type="text" class="short" name="_sale_price_dates_from" id="_sale_price_dates_from" value="' . esc_attr( $sale_price_dates_from ) . '" placeholder="' . _x( 'From&hellip;', 'placeholder', 'woocommerce' ) . ' YYYY-MM-DD" maxlength="10" pattern="[0-9]{4}-(0[1-9]|1[012])-(0[1-9]|1[0-9]|2[0-9]|3[01])" />
 								<input type="text" class="short" name="_sale_price_dates_to" id="_sale_price_dates_to" value="' . esc_attr( $sale_price_dates_to ) . '" placeholder="' . _x( 'To&hellip;', 'placeholder', 'woocommerce' ) . '  YYYY-MM-DD" maxlength="10" pattern="[0-9]{4}-(0[1-9]|1[012])-(0[1-9]|1[0-9]|2[0-9]|3[01])" />
 								<a href="#" class="cancel_sale_schedule">'. __( 'Cancel', 'woocommerce' ) .'</a>
-								<img class="help_tip" style="margin-top: 21px;" data-tip="' . __( 'The sale will end at the beginning of the set date.', 'woocommerce' ) . '" src="' . esc_url( WC()->plugin_url() ) . '/assets/images/help.png" height="16" width="16" />
+								<img class="help_tip" style="margin-top: 21px;" data-tip="' . esc_attr__( 'The sale will end at the beginning of the set date.', 'woocommerce' ) . '" src="' . esc_url( WC()->plugin_url() ) . '/assets/images/help.png" height="16" width="16" />
 							</p>';
 
 					do_action( 'woocommerce_product_options_pricing' );
@@ -189,8 +189,8 @@ class WC_Meta_Box_Product_Data {
 							<thead>
 								<tr>
 									<th class="sort">&nbsp;</th>
-									<th><?php _e( 'Name', 'woocommerce' ); ?> <span class="tips" data-tip="<?php _e( 'This is the name of the download shown to the customer.', 'woocommerce' ); ?>">[?]</span></th>
-									<th colspan="2"><?php _e( 'File URL', 'woocommerce' ); ?> <span class="tips" data-tip="<?php _e( 'This is the URL or absolute path to the file which customers will get access to. URLs entered here should already be encoded.', 'woocommerce' ); ?>">[?]</span></th>
+									<th><?php _e( 'Name', 'woocommerce' ); ?> <span class="tips" data-tip="<?php esc_attr_e( 'This is the name of the download shown to the customer.', 'woocommerce' ); ?>">[?]</span></th>
+									<th colspan="2"><?php _e( 'File URL', 'woocommerce' ); ?> <span class="tips" data-tip="<?php esc_attr_e( 'This is the URL or absolute path to the file which customers will get access to. URLs entered here should already be encoded.', 'woocommerce' ); ?>">[?]</span></th>
 									<th>&nbsp;</th>
 								</tr>
 							</thead>
@@ -362,9 +362,9 @@ class WC_Meta_Box_Product_Data {
 						?><p class="form-field dimensions_field">
 							<label for="product_length"><?php echo __( 'Dimensions', 'woocommerce' ) . ' (' . get_option( 'woocommerce_dimension_unit' ) . ')'; ?></label>
 							<span class="wrap">
-								<input id="product_length" placeholder="<?php _e( 'Length', 'woocommerce' ); ?>" class="input-text wc_input_decimal" size="6" type="text" name="_length" value="<?php echo esc_attr( wc_format_localized_decimal( get_post_meta( $thepostid, '_length', true ) ) ); ?>" />
-								<input placeholder="<?php _e( 'Width', 'woocommerce' ); ?>" class="input-text wc_input_decimal" size="6" type="text" name="_width" value="<?php echo esc_attr( wc_format_localized_decimal( get_post_meta( $thepostid, '_width', true ) ) ); ?>" />
-								<input placeholder="<?php _e( 'Height', 'woocommerce' ); ?>" class="input-text wc_input_decimal last" size="6" type="text" name="_height" value="<?php echo esc_attr( wc_format_localized_decimal( get_post_meta( $thepostid, '_height', true ) ) ); ?>" />
+								<input id="product_length" placeholder="<?php esc_attr_e( 'Length', 'woocommerce' ); ?>" class="input-text wc_input_decimal" size="6" type="text" name="_length" value="<?php echo esc_attr( wc_format_localized_decimal( get_post_meta( $thepostid, '_length', true ) ) ); ?>" />
+								<input placeholder="<?php esc_attr_e( 'Width', 'woocommerce' ); ?>" class="input-text wc_input_decimal" size="6" type="text" name="_width" value="<?php echo esc_attr( wc_format_localized_decimal( get_post_meta( $thepostid, '_width', true ) ) ); ?>" />
+								<input placeholder="<?php esc_attr_e( 'Height', 'woocommerce' ); ?>" class="input-text wc_input_decimal last" size="6" type="text" name="_height" value="<?php echo esc_attr( wc_format_localized_decimal( get_post_meta( $thepostid, '_height', true ) ) ); ?>" />
 							</span>
 							<img class="help_tip" data-tip="<?php esc_attr_e( 'LxWxH in decimal form', 'woocommerce' ); ?>" src="<?php echo esc_url( WC()->plugin_url() ); ?>/assets/images/help.png" height="16" width="16" />
 						</p><?php
@@ -471,7 +471,7 @@ class WC_Meta_Box_Product_Data {
 
 					<p class="form-field">
 						<label for="upsell_ids"><?php _e( 'Up-Sells', 'woocommerce' ); ?></label>
-						<input type="hidden" class="wc-product-search" style="width: 50%;" id="upsell_ids" name="upsell_ids" data-placeholder="<?php _e( 'Search for a product&hellip;', 'woocommerce' ); ?>" data-action="woocommerce_json_search_products" data-multiple="true" data-exclude="<?php echo intval( $post->ID ); ?>" data-selected="<?php
+						<input type="hidden" class="wc-product-search" style="width: 50%;" id="upsell_ids" name="upsell_ids" data-placeholder="<?php esc_attr_e( 'Search for a product&hellip;', 'woocommerce' ); ?>" data-action="woocommerce_json_search_products" data-multiple="true" data-exclude="<?php echo intval( $post->ID ); ?>" data-selected="<?php
 							$product_ids = array_filter( array_map( 'absint', (array) get_post_meta( $post->ID, '_upsell_ids', true ) ) );
 							$json_ids    = array();
 
@@ -488,7 +488,7 @@ class WC_Meta_Box_Product_Data {
 
 					<p class="form-field">
 						<label for="crosssell_ids"><?php _e( 'Cross-Sells', 'woocommerce' ); ?></label>
-						<input type="hidden" class="wc-product-search" style="width: 50%;" id="crosssell_ids" name="crosssell_ids" data-placeholder="<?php _e( 'Search for a product&hellip;', 'woocommerce' ); ?>" data-action="woocommerce_json_search_products" data-multiple="true" data-exclude="<?php echo intval( $post->ID ); ?>" data-selected="<?php
+						<input type="hidden" class="wc-product-search" style="width: 50%;" id="crosssell_ids" name="crosssell_ids" data-placeholder="<?php esc_attr_e( 'Search for a product&hellip;', 'woocommerce' ); ?>" data-action="woocommerce_json_search_products" data-multiple="true" data-exclude="<?php echo intval( $post->ID ); ?>" data-selected="<?php
 							$product_ids = array_filter( array_map( 'absint', (array) get_post_meta( $post->ID, '_crosssell_ids', true ) ) );
 							$json_ids    = array();
 
@@ -500,7 +500,7 @@ class WC_Meta_Box_Product_Data {
 							}
 
 							echo esc_attr( json_encode( $json_ids ) );
-						?>" value="<?php echo implode( ',', array_keys( $json_ids ) ); ?>" /> <img class="help_tip" data-tip='<?php _e( 'Cross-sells are products which you promote in the cart, based on the current product.', 'woocommerce' ) ?>' src="<?php echo WC()->plugin_url(); ?>/assets/images/help.png" height="16" width="16" />
+						?>" value="<?php echo implode( ',', array_keys( $json_ids ) ); ?>" /> <img class="help_tip" data-tip='<?php esc_attr_e( 'Cross-sells are products which you promote in the cart, based on the current product.', 'woocommerce' ) ?>' src="<?php echo WC()->plugin_url(); ?>/assets/images/help.png" height="16" width="16" />
 					</p>
 				</div>
 
@@ -508,7 +508,7 @@ class WC_Meta_Box_Product_Data {
 
 					<p class="form-field">
 						<label for="parent_id"><?php _e( 'Grouping', 'woocommerce' ); ?></label>
-						<input type="hidden" class="wc-product-search" style="width: 50%;" id="parent_id" name="parent_id" data-placeholder="<?php _e( 'Search for a product&hellip;', 'woocommerce' ); ?>" data-action="woocommerce_json_search_grouped_products" data-allow_clear="true" data-multiple="false" data-exclude="<?php echo intval( $post->ID ); ?>" data-selected="<?php
+						<input type="hidden" class="wc-product-search" style="width: 50%;" id="parent_id" name="parent_id" data-placeholder="<?php esc_attr_e( 'Search for a product&hellip;', 'woocommerce' ); ?>" data-action="woocommerce_json_search_grouped_products" data-allow_clear="true" data-multiple="false" data-exclude="<?php echo intval( $post->ID ); ?>" data-selected="<?php
 							$parent_id = absint( $post->post_parent );
 
 							if ( $parent_id ) {
@@ -614,7 +614,7 @@ class WC_Meta_Box_Product_Data {
 
 				<div class="toolbar toolbar-variations-defaults">
 					<div class="variations-defaults">
-						<strong><?php _e( 'Default Form Values', 'woocommerce' ); ?>: <span class="tips" data-tip="<?php _e( 'These are the attributes that will be pre-selected on the frontend.', 'woocommerce' ); ?>">[?]</span></strong>
+						<strong><?php _e( 'Default Form Values', 'woocommerce' ); ?>: <span class="tips" data-tip="<?php esc_attr_e( 'These are the attributes that will be pre-selected on the frontend.', 'woocommerce' ); ?>">[?]</span></strong>
 						<?php
 							$default_attributes = maybe_unserialize( get_post_meta( $post->ID, '_default_attributes', true ) );
 
@@ -643,7 +643,8 @@ class WC_Meta_Box_Product_Data {
 									$options = wc_get_text_attributes( $attribute['value'] );
 
 									foreach ( $options as $option ) {
-										echo '<option ' . selected( $variation_selected_value, $option, false ) . ' value="' . esc_attr( $option ) . '">' . esc_html( apply_filters( 'woocommerce_variation_option_name', $option ) )  . '</option>';
+										$selected = sanitize_title( $variation_selected_value ) === $variation_selected_value ? selected( $variation_selected_value, sanitize_title( $option ), false ) : selected( $variation_selected_value, $option, false );
+										echo '<option ' . $selected . ' value="' . esc_attr( $option ) . '">' . esc_html( apply_filters( 'woocommerce_variation_option_name', $option ) )  . '</option>';
 									}
 
 								}
@@ -698,19 +699,19 @@ class WC_Meta_Box_Product_Data {
 							(<a href="#" class="expand_all"><?php _e( 'Expand', 'woocommerce' ); ?></a> / <a href="#" class="close_all"><?php _e( 'Close', 'woocommerce' ); ?></a>)
 						</span>
 						<span class="pagination-links">
-							<a class="first-page disabled" title="<?php _e( 'Go to the first page', 'woocommerce' ); ?>" href="#">&laquo;</a>
-							<a class="prev-page disabled" title="<?php _e( 'Go to the previous page', 'woocommerce' ); ?>" href="#">&lsaquo;</a>
+							<a class="first-page disabled" title="<?php esc_attr_e( 'Go to the first page', 'woocommerce' ); ?>" href="#">&laquo;</a>
+							<a class="prev-page disabled" title="<?php esc_attr_e( 'Go to the previous page', 'woocommerce' ); ?>" href="#">&lsaquo;</a>
 							<span class="paging-select">
 								<label for="current-page-selector-1" class="screen-reader-text"><?php _e( 'Select Page', 'woocommerce' ); ?></label>
-								<select class="page-selector" id="current-page-selector-1" title="<?php _e( 'Current page', 'woocommerce' ); ?>">
+								<select class="page-selector" id="current-page-selector-1" title="<?php esc_attr_e( 'Current page', 'woocommerce' ); ?>">
 									<?php for ( $i = 1; $i <= $variations_total_pages; $i++ ) : ?>
 										<option value="<?php echo $i; ?>"><?php echo $i; ?></option>
 									<?php endfor; ?>
 								</select>
 								 <?php _ex( 'of', 'number of pages', 'woocommerce' ); ?> <span class="total-pages"><?php echo $variations_total_pages; ?></span>
 							</span>
-							<a class="next-page" title="<?php _e( 'Go to the next page', 'woocommerce' ); ?>" href="#">&rsaquo;</a>
-							<a class="last-page" title="<?php _e( 'Go to the last page', 'woocommerce' ); ?>" href="#">&raquo;</a>
+							<a class="next-page" title="<?php esc_attr_e( 'Go to the next page', 'woocommerce' ); ?>" href="#">&rsaquo;</a>
+							<a class="last-page" title="<?php esc_attr_e( 'Go to the last page', 'woocommerce' ); ?>" href="#">&raquo;</a>
 						</span>
 					</div>
 					<div class="clear"></div>
@@ -729,19 +730,19 @@ class WC_Meta_Box_Product_Data {
 							(<a href="#" class="expand_all"><?php _e( 'Expand', 'woocommerce' ); ?></a> / <a href="#" class="close_all"><?php _e( 'Close', 'woocommerce' ); ?></a>)
 						</span>
 						<span class="pagination-links">
-							<a class="first-page disabled" title="<?php _e( 'Go to the first page', 'woocommerce' ); ?>" href="#">&laquo;</a>
-							<a class="prev-page disabled" title="<?php _e( 'Go to the previous page', 'woocommerce' ); ?>" href="#">&lsaquo;</a>
+							<a class="first-page disabled" title="<?php esc_attr_e( 'Go to the first page', 'woocommerce' ); ?>" href="#">&laquo;</a>
+							<a class="prev-page disabled" title="<?php esc_attr_e( 'Go to the previous page', 'woocommerce' ); ?>" href="#">&lsaquo;</a>
 							<span class="paging-select">
 								<label for="current-page-selector-1" class="screen-reader-text"><?php _e( 'Select Page', 'woocommerce' ); ?></label>
-								<select class="page-selector" id="current-page-selector-1" title="<?php _e( 'Current page', 'woocommerce' ); ?>">
+								<select class="page-selector" id="current-page-selector-1" title="<?php esc_attr_e( 'Current page', 'woocommerce' ); ?>">
 									<?php for ( $i = 1; $i <= $variations_total_pages; $i++ ) : ?>
 										<option value="<?php echo $i; ?>"><?php echo $i; ?></option>
 									<?php endfor; ?>
 								</select>
 								 <?php _ex( 'of', 'number of pages', 'woocommerce' ); ?> <span class="total-pages"><?php echo $variations_total_pages; ?></span>
 							</span>
-							<a class="next-page" title="<?php _e( 'Go to the next page', 'woocommerce' ); ?>" href="#">&rsaquo;</a>
-							<a class="last-page" title="<?php _e( 'Go to the last page', 'woocommerce' ); ?>" href="#">&raquo;</a>
+							<a class="next-page" title="<?php esc_attr_e( 'Go to the next page', 'woocommerce' ); ?>" href="#">&rsaquo;</a>
+							<a class="last-page" title="<?php esc_attr_e( 'Go to the last page', 'woocommerce' ); ?>" href="#">&raquo;</a>
 						</span>
 					</div>
 
@@ -881,15 +882,18 @@ class WC_Meta_Box_Product_Data {
 
 				if ( $is_taxonomy ) {
 
+					$values_are_slugs = false;
+
 					if ( isset( $attribute_values[ $i ] ) ) {
 
 						// Select based attributes - Format values (posted values are slugs)
 						if ( is_array( $attribute_values[ $i ] ) ) {
-							$values = array_map( 'sanitize_title', $attribute_values[ $i ] );
+							$values           = array_map( 'sanitize_title', $attribute_values[ $i ] );
+							$values_are_slugs = true;
 
 						// Text based attributes - Posted values are term names - don't change to slugs
 						} else {
-							$values = array_map( 'stripslashes', array_map( 'strip_tags', explode( WC_DELIMITER, $attribute_values[ $i ] ) ) );
+							$values           = array_map( 'stripslashes', array_map( 'strip_tags', explode( WC_DELIMITER, $attribute_values[ $i ] ) ) );
 						}
 
 						// Remove empty items in the array
@@ -903,7 +907,8 @@ class WC_Meta_Box_Product_Data {
 					if ( taxonomy_exists( $attribute_names[ $i ] ) ) {
 
 						foreach( $values as $key => $value ) {
-							$term = get_term_by( 'name', trim( $value ), $attribute_names[ $i ] );
+							$term = get_term_by( $values_are_slugs ? 'slug' : 'name', trim( $value ), $attribute_names[ $i ] );
+
 							if ( $term ) {
 								$values[ $key ] = intval( $term->term_id );
 							} else {
@@ -1321,7 +1326,7 @@ class WC_Meta_Box_Product_Data {
 						$unique_sku = wc_product_has_unique_sku( $variation_id, $new_sku );
 
 						if ( ! $unique_sku ) {
-							WC_Admin_Meta_Boxes::add_error( __( 'Variation SKU must be unique.', 'woocommerce' ) );
+							WC_Admin_Meta_Boxes::add_error( sprintf( __( '#%s &ndash; Variation SKU must be unique.', 'woocommerce' ), $variation_id ) );
 						} else {
 							update_post_meta( $variation_id, '_sku', $new_sku );
 						}
@@ -1441,14 +1446,14 @@ class WC_Meta_Box_Product_Data {
 								$extension  = pathinfo( $parsed_url, PATHINFO_EXTENSION );
 
 								if ( ! empty( $extension ) && ! in_array( $file_type['type'], $allowed_file_types ) ) {
-									WC_Admin_Meta_Boxes::add_error( sprintf( __( 'The downloadable file %s cannot be used as it does not have an allowed file type. Allowed types include: %s', 'woocommerce' ), '<code>' . basename( $file_url ) . '</code>', '<code>' . implode( ', ', array_keys( $allowed_file_types ) ) . '</code>' ) );
+									WC_Admin_Meta_Boxes::add_error( sprintf( __( '#%s &ndash; The downloadable file %s cannot be used as it does not have an allowed file type. Allowed types include: %s', 'woocommerce' ), $variation_id, '<code>' . basename( $file_url ) . '</code>', '<code>' . implode( ', ', array_keys( $allowed_file_types ) ) . '</code>' ) );
 									continue;
 								}
 							}
 
 							// Validate the file exists
 							if ( 'relative' === $file_is && ! apply_filters( 'woocommerce_downloadable_file_exists', file_exists( $file_url ), $file_url ) ) {
-								WC_Admin_Meta_Boxes::add_error( sprintf( __( 'The downloadable file %s cannot be used as it does not exist on the server.', 'woocommerce' ), '<code>' . $file_url . '</code>' ) );
+								WC_Admin_Meta_Boxes::add_error( sprintf( __( '#%s &ndash; The downloadable file %s cannot be used as it does not exist on the server.', 'woocommerce' ), $variation_id, '<code>' . $file_url . '</code>' ) );
 								continue;
 							}
 

@@ -321,7 +321,7 @@ class WC_Report_Sales_By_Date extends WC_Admin_Report {
 
 		// Total orders and discounts also includes those which have been refunded at some point
 		$this->report_data->total_orders          = absint( array_sum( wp_list_pluck( $this->report_data->order_counts, 'count' ) ) );
-		$this->report_data->total_coupons         = number_format( array_sum( wp_list_pluck( $this->report_data->coupons, 'discount_amount' ) ), 2 );
+		$this->report_data->total_coupons         = number_format( array_sum( wp_list_pluck( $this->report_data->coupons, 'discount_amount' ) ), 2, '.', '' );
 		$this->report_data->total_refunded_orders = absint( count( $this->report_data->full_refunds ) );
 
 		// Item counts
@@ -439,7 +439,7 @@ class WC_Report_Sales_By_Date extends WC_Admin_Report {
 			download="report-<?php echo esc_attr( $current_range ); ?>-<?php echo date_i18n( 'Y-m-d', current_time('timestamp') ); ?>.csv"
 			class="export_csv"
 			data-export="chart"
-			data-xaxes="<?php _e( 'Date', 'woocommerce' ); ?>"
+			data-xaxes="<?php esc_attr_e( 'Date', 'woocommerce' ); ?>"
 			data-exclude_series="2"
 			data-groupby="<?php echo $this->chart_groupby; ?>"
 		>
